@@ -1,11 +1,11 @@
 import Flutter
 import UIKit
 
-public class SwiftStreamingPlugin: NSObject, FlutterPlugin,StatusChangeDelegate {
+public class SwiftStreamingPlugin: NSObject, FlutterPlugin, StreamingDelegate {
     
     public override init() {
         super .init()
-        streamingController.statusChangeDelegate = self
+        streamingController.streamingDelegate = self
     }
     
     public func onChangeStatus(status: StreamingStatus) {
@@ -24,6 +24,10 @@ public class SwiftStreamingPlugin: NSObject, FlutterPlugin,StatusChangeDelegate 
         default:
             break
         }
+    }
+
+    public func onUpdateSongTitle(title: String) {
+        SwiftStreamingPlugin.channel?.invokeMethod(SwiftStreamingPlugin.SONG_TITLE_UPDATE_EVENT_METHOD, arguments: [title])
     }
     
     private static var channel:FlutterMethodChannel?
@@ -49,11 +53,13 @@ public class SwiftStreamingPlugin: NSObject, FlutterPlugin,StatusChangeDelegate 
     private static let PLAY_METHOD = "play"
     private static let PAUSE_METHOD = "pause"
     private static let STOP_METHOD = "stop"
+    private static let GET_CURRENT_SONG = "getCurrentSong"
     
     private static let PLAYING_EVENT_METHOD = "playing_event"
     private static let STOPPED_EVENT_METHOD = "stopped_event"
     private static let PAUSED_EVENT_METHOD = "paused_event"
     private static let LOADING_EVENT_METHOD = "loading_event"
+    private static let SONG_TITLE_UPDATE_EVENT_METHOD = "song_title_update_event"
     
     private var url = ""
     private var title = ""
@@ -125,6 +131,9 @@ static public func register(with registrar: FlutterPluginRegistrar) {
             break
         case SwiftStreamingPlugin.STOP_METHOD:
             streamingController.stop()
+            break
+        case SwiftStreamingPlugin.GET_CURRENT_SONG:
+            streamingController.getCurrentSong()
             break
         default:
             break

@@ -22,6 +22,9 @@ class StreamingController {
         case 'loading_event':
           streamingController.sink.add(call.method);
           return 'Loading, ${call.arguments}';
+        case 'song_title_update_event':
+          streamingController.sink.add('Playing: ${call.arguments[0]}');
+          return 'Playing: ${call.arguments}';
         default:
           throw MissingPluginException();
       }

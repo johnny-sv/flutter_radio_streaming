@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:streaming_radio_flutter_plugin_example_project/StreamingController.dart';
+import 'StreamingController.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,7 +15,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     streamingController.config(
-        url: "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p");
+        url: "http://riverfm.com.au/listen.m3u");
   }
 
   @override
