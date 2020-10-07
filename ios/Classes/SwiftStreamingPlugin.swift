@@ -53,7 +53,7 @@ public class SwiftStreamingPlugin: NSObject, FlutterPlugin, StreamingDelegate {
     private static let PLAY_METHOD = "play"
     private static let PAUSE_METHOD = "pause"
     private static let STOP_METHOD = "stop"
-    private static let GET_CURRENT_SONG = "getCurrentSong"
+    private static let GET_CURRENT_SONG_METHOD = "getCurrentSong"
     
     private static let PLAYING_EVENT_METHOD = "playing_event"
     private static let STOPPED_EVENT_METHOD = "stopped_event"
@@ -132,8 +132,8 @@ static public func register(with registrar: FlutterPluginRegistrar) {
         case SwiftStreamingPlugin.STOP_METHOD:
             streamingController.stop()
             break
-        case SwiftStreamingPlugin.GET_CURRENT_SONG:
-            streamingController.getCurrentSong()
+        case SwiftStreamingPlugin.GET_CURRENT_SONG_METHOD:
+            result(streamingController.getCurrentSong())
             break
         default:
             break
