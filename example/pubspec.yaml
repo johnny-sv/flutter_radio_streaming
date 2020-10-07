@@ -1,0 +1,24 @@
+name: streaming_radio_flutter_plugin_example_project
+description: Demonstrates how to use the Radio Streaming plugin.
+version: 1.0.0
+email: cristiantorrado@gmail.com
+homepage: "https://cristiantorrado.github.io/"
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  streaming_radio_flutter_plugin:
+    path: ../
+
+flutter:
+
+  uses-material-design: true
