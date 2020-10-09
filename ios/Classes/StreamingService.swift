@@ -141,8 +141,8 @@ public final class StreamingManager: NSObject, UNUserNotificationCenterDelegate,
         }
     }
 
-    public func getCurrentSong() -> String {
-        return currentSong
+    public func getCurrentSong() {
+        self.streamingDelegate?.onUpdateSongTitle(title: currentSong)
     }
     
     public func metadataOutput(_ output: AVPlayerItemMetadataOutput, didOutputTimedMetadataGroups groups: [AVTimedMetadataGroup], from track: AVPlayerItemTrack?) {

@@ -133,7 +133,7 @@ static public func register(with registrar: FlutterPluginRegistrar) {
             streamingController.stop()
             break
         case SwiftStreamingPlugin.GET_CURRENT_SONG_METHOD:
-            result(streamingController.getCurrentSong())
+            streamingController.getCurrentSong()
             break
         default:
             break

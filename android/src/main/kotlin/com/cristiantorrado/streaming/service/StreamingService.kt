@@ -100,6 +100,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
                 isInitialized = true
                 exoPlayer?.let {
                     it.addListener(this)
+                    it.addMetadataOutput(this)
                     status = getStatusFromPlaybackState(it.playWhenReady, it.playbackState)
                 }
             }
@@ -174,6 +175,28 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pauseStreaming()
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> changeVolume(0.1f)
         }
+    }
+
+    override fun onMetadata(metadata: Metadata) {
+        var song = ""
+        for (n in 0 until metadata.length()) {
+            when (val md = metadata[n]) {
+                is com.google.android.exoplayer2.metadata.icy.IcyInfo -> {
+                    android.util.Log.d("METADATA", "Title: ${md.title} URL: ${md.url}")
+                    if (song.isEmpty()) {
+                        song = md.title?.trim() ?: ""
+                    }
+                }
+                else -> {
+                    android.util.Log.d("METADATA", "Some other sort of metadata: $md")
+                }
+            }
+        }
+        currentSong = song
+
+        val event = SongTitleUpdateEvent()
+        event.value = currentSong
+        EventBus.getDefault().post(event)
     }
 
     private fun requestAudioFocus() {
@@ -317,9 +340,9 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     }
 
     private fun getCurrentSong() {
-        val myService = Intent(this, this::class.java)
-        myService.putExtra(CURRENT_SONG_TITLE_EXTRA, currentSong)
-        stopService(myService)
+        val event = SongTitleUpdateEvent()
+        event.value = currentSong
+        EventBus.getDefault().post(event)
     }
 
     private fun stopStreaming() {
@@ -448,14 +471,6 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         const val CANCEL_SERVICE_REQUEST_CODE = 4
         const val START_ACTIVITY_REQUEST_CODE = 5
         const val NOTIFICATION_ID = 1
-    }
-
-    override fun onMetadata(metadata: Metadata) {
-        currentSong = metadata.toString()
-
-        val event = SongTitleUpdateEvent()
-        event.value = currentSong
-        EventBus.getDefault().post(event)
     }
 
 

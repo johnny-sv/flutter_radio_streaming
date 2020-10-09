@@ -10,8 +10,7 @@ class Streaming {
     return version;
   }
 
-  static Future<String> get getCurrentSong async {
-    final String title = await _channel.invokeMethod('getCurrentSong', {});
-    return title;
+  static Future<void> get getCurrentSong async {
+    await _channel.invokeMethod('getCurrentSong', {});
   }
 }

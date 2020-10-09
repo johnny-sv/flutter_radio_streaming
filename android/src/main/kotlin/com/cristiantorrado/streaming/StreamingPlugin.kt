@@ -113,13 +113,12 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
             GET_CURRENT_SONG_METHOD -> {
                 myAppContext().let { context ->
                     val startServiceIntent = Intent(context, StreamingService::class.java)
-                    startServiceIntent.apply {
-                        this.action = StreamingService.GET_CURRENT_SONG_ACTION
+                    startServiceIntent.let {
+                        it.action = StreamingService.GET_CURRENT_SONG_ACTION
+                        context.startService(startServiceIntent)
                     }
-                    context.startService(startServiceIntent)
-                    val currentSong = startServiceIntent.getStringExtra(StreamingService.CURRENT_SONG_TITLE_EXTRA)
-                    result.success(currentSong)
                 }
+                result.success(RESULT_SUCCESS_MESSAGE)
             }
             else -> {
                 result.notImplemented()
@@ -170,7 +169,7 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
         const val PLAY_METHOD = "play"
         const val PAUSE_METHOD = "pause"
         const val STOP_METHOD = "stop"
-        const val GET_CURRENT_SONG_METHOD = "getCurrentCong"
+        const val GET_CURRENT_SONG_METHOD = "getCurrentSong"
 
         const val PLAYING_EVENT_METHOD = "playing_event"
         const val STOPPED_EVENT_METHOD = "stopped_event"

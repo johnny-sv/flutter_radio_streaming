@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:streaming_radio_flutter_plugin/streaming_radio_flutter_plugin.dart';
 
 class StreamingController {
   MethodChannel _channel;
@@ -12,6 +13,9 @@ class StreamingController {
       switch (call.method) {
         case 'playing_event':
           streamingController.sink.add(call.method);
+          Future<void>.delayed(const Duration(milliseconds: 500), () async {
+            await Streaming.getCurrentSong;
+          });
           return 'Playing, ${call.arguments}';
         case 'paused_event':
           streamingController.sink.add(call.method);
@@ -25,6 +29,10 @@ class StreamingController {
         case 'song_title_update_event':
           streamingController.sink.add('Playing: ${call.arguments[0]}');
           return 'Playing: ${call.arguments}';
+        case 'song_title_update_event':
+          final String song = call.arguments[0].toString();
+          streamingController.sink.add(song.isNotEmpty ? song : "");
+          return 'Now playing, ${call.arguments}';
         default:
           throw MissingPluginException();
       }

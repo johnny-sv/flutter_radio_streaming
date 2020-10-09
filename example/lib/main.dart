@@ -15,7 +15,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     streamingController.config(
-        url: "http://riverfm.com.au/listen.m3u");
+        url: "http://syd02.sdn.dhcmedia.com.au/radio/8010/magic876?1599784783");
   }
 
   @override
