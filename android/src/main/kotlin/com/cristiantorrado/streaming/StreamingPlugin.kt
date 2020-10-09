@@ -41,7 +41,7 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun myAppContext(): Context {
         return mFlutterPluginBinding?.applicationContext
-                ?: throw Exception("ForegroundServicePlugin application context was null")
+            ?: throw Exception("ForegroundServicePlugin application context was null")
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -54,7 +54,7 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
                     title = if (args[TITLE_PARAM] != null) args[TITLE_PARAM] as String else title
                     description = if (args[DESCRIPTION_PARAM] != null) args[DESCRIPTION_PARAM] as String else description
                     color = if (args[COLOR_PARAM] != null &&
-                            validateHexadecimalColorPattern(args[COLOR_PARAM] as String)) args[COLOR_PARAM] as String else color
+                        validateHexadecimalColorPattern(args[COLOR_PARAM] as String)) args[COLOR_PARAM] as String else color
                     stopText = if (args[STOP_TEXT_PARAM] != null) args[STOP_TEXT_PARAM] as String else stopText
                     pauseText = if (args[PAUSE_TEXT_PARAM] != null) args[PAUSE_TEXT_PARAM] as String else pauseText
                     playText = if (args[PLAY_TEXT_PARAM] != null) args[PLAY_TEXT_PARAM] as String else playText
@@ -110,6 +110,17 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
                 }
                 result.success(RESULT_SUCCESS_MESSAGE)
             }
+            GET_CURRENT_SONG_METHOD -> {
+                myAppContext().let { context ->
+                    val startServiceIntent = Intent(context, StreamingService::class.java)
+                    startServiceIntent.apply {
+                        this.action = StreamingService.GET_CURRENT_SONG_ACTION
+                    }
+                    context.startService(startServiceIntent)
+                    val currentSong = startServiceIntent.getStringExtra(StreamingService.CURRENT_SONG_TITLE_EXTRA)
+                    result.success(currentSong)
+                }
+            }
             else -> {
                 result.notImplemented()
             }
@@ -123,6 +134,7 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
             is StoppedEvent -> channel?.invokeMethod(STOPPED_EVENT_METHOD, null)
             is PausedEvent -> channel?.invokeMethod(PAUSED_EVENT_METHOD, null)
             is LoadingEvent -> channel?.invokeMethod(LOADING_EVENT_METHOD, null)
+            is SongTitleUpdateEvent -> channel?.invokeMethod(SONG_TITLE_UPDATE_METHOD, listOf(event.value))
         }
     }
 
@@ -158,11 +170,13 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
         const val PLAY_METHOD = "play"
         const val PAUSE_METHOD = "pause"
         const val STOP_METHOD = "stop"
+        const val GET_CURRENT_SONG_METHOD = "getCurrentCong"
 
         const val PLAYING_EVENT_METHOD = "playing_event"
         const val STOPPED_EVENT_METHOD = "stopped_event"
         const val PAUSED_EVENT_METHOD = "paused_event"
         const val LOADING_EVENT_METHOD = "loading_event"
+        const val SONG_TITLE_UPDATE_METHOD = "song_title_update_event"
 
 
     }

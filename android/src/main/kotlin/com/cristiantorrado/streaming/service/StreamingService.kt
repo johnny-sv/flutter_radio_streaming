@@ -21,6 +21,8 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.metadata.Metadata
+import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
@@ -31,7 +33,7 @@ import com.google.android.exoplayer2.util.Util
 import org.greenrobot.eventbus.EventBus
 
 
-class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFocusChangeListener {
+class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFocusChangeListener, MetadataOutput {
 
     private var isInitialized = false
     private var url = ""
@@ -45,6 +47,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     private var stoppedText = ""
     private var packageIntentName = ""
     private var audioFocusRequest: AudioFocusRequest? = null
+    private var currentSong = ""
 
     private var exoPlayer: SimpleExoPlayer? = null
     private var status: PlayerStatus? = null
@@ -64,14 +67,14 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setAudioAttributes(
-                            AudioAttributes.Builder()
-                                    .setUsage(AudioAttributes.USAGE_GAME)
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                                    .build()
-                    )
-                    .setAcceptsDelayedFocusGain(false)
-                    .setOnAudioFocusChangeListener(this).build()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                .setAcceptsDelayedFocusGain(false)
+                .setOnAudioFocusChangeListener(this).build()
         }
     }
 
@@ -104,7 +107,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
         createNotificationChannel()
         val notification =  buildNotification(title, description, playingText,
-                stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+            stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )
         startForeground(NOTIFICATION_ID, notification)
         actionHandler(intent)
@@ -130,7 +133,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         this.isPlaying = isPlaying
         notification = buildNotification(title, description, playingText,
-                stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+            stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )?.apply {
             notify(this)
         }
@@ -183,8 +186,8 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
             }
         } else {
             mAudioManager.requestAudioFocus(this,
-                    AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN)
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN)
         }
     }
 
@@ -209,7 +212,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
         val notificationIntent = Intent(this, this::class.java)
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0)
+            0, notificationIntent, 0)
 
         val playButtonNotificationText = if (playButtonText.isNotEmpty()) playButtonText else getString(R.string.play_button_title)
         val pauseButtonNotificationText = if (pauseButtonText.isNotEmpty()) pauseButtonText else getString(R.string.pause_button_title)
@@ -245,21 +248,21 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         }
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(title)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setContentIntent(pendingIntent)
-                .setWhen(System.currentTimeMillis())
-                .setColorized(true)
-                .setContentText(finalDescription)
-                .setContentTitle(title)
-                .setAutoCancel(true)
-                .setDeleteIntent(closeAction)
-                .setSmallIcon(android.R.drawable.stat_sys_headset)
-                .setContentIntent(tapAction)
-                .addAction(R.drawable.ic_play_arrow_black_24dp, playButtonNotificationText, playAction)
-                .addAction(R.drawable.ic_pause_black_24dp, pauseButtonNotificationText, pauseAction)
-                .addAction(R.drawable.ic_stop_black_24dp, stopButtonNotificationText, stopAction)
+            .setContentTitle(title)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(pendingIntent)
+            .setWhen(System.currentTimeMillis())
+            .setColorized(true)
+            .setContentText(finalDescription)
+            .setContentTitle(title)
+            .setAutoCancel(true)
+            .setDeleteIntent(closeAction)
+            .setSmallIcon(android.R.drawable.stat_sys_headset)
+            .setContentIntent(tapAction)
+            .addAction(R.drawable.ic_play_arrow_black_24dp, playButtonNotificationText, playAction)
+            .addAction(R.drawable.ic_pause_black_24dp, pauseButtonNotificationText, pauseAction)
+            .addAction(R.drawable.ic_stop_black_24dp, stopButtonNotificationText, stopAction)
         try {
             Color.parseColor(color).let {
                 notificationBuilder.setColor(it)
@@ -289,6 +292,9 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
                     removeAudioFocus()
                     pauseStreaming()
                 }
+                GET_CURRENT_SONG_ACTION -> {
+                    getCurrentSong()
+                }
                 else -> {
                 }
             }
@@ -304,10 +310,16 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     private val phoneStateListener: PhoneStateListener = object : PhoneStateListener() {
         override fun onCallStateChanged(state: Int, incomingNumber: String) {
             if (state == TelephonyManager.CALL_STATE_OFFHOOK
-                    || state == TelephonyManager.CALL_STATE_RINGING) {
+                || state == TelephonyManager.CALL_STATE_RINGING) {
                 pauseStreaming()
             }
         }
+    }
+
+    private fun getCurrentSong() {
+        val myService = Intent(this, this::class.java)
+        myService.putExtra(CURRENT_SONG_TITLE_EXTRA, currentSong)
+        stopService(myService)
     }
 
     private fun stopStreaming() {
@@ -346,9 +358,9 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_LOW
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
             )
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager?.createNotificationChannel(serviceChannel)
@@ -361,17 +373,17 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     }
 
     private fun createLeafMediaSource(
-            uri: Uri, extension: String, dataSourceFactory: DefaultDataSourceFactory): MediaSource {
+        uri: Uri, extension: String, dataSourceFactory: DefaultDataSourceFactory): MediaSource {
         @C.ContentType val type = Util.inferContentType(uri, extension)
         return when (type) {
             C.TYPE_DASH -> DashMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(uri)
+                .createMediaSource(uri)
             C.TYPE_SS -> SsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(uri)
+                .createMediaSource(uri)
             C.TYPE_HLS -> HlsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(uri)
+                .createMediaSource(uri)
             C.TYPE_OTHER -> ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(uri)
+                .createMediaSource(uri)
             else -> throw java.lang.IllegalStateException("Unsupported type: $type")
         }
     }
@@ -420,11 +432,13 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         const val PLAYING_DESCRIPTION_EXTRA = "PLAYING_DESCRIPTION_EXTRA"
         const val STOPPED_DESCRIPTION_EXTRA = "STOPPED_DESCRIPTION_EXTRA"
         const val ANDROID_PACKAGE_TAP_INTENT_EXTRA = "ANDROID_PACKAGE_TAP_INTENT_EXTRA"
+        const val CURRENT_SONG_TITLE_EXTRA = "CURRENT_SONG_TITLE_EXTRA"
 
         const val STOP_ACTION = "STOP_ACTION"
         const val PAUSE_ACTION = "PAUSE_ACTION"
         const val PLAY_ACTION = "PLAY_ACTION"
         const val CLOSE_ACTION = "CLOSE_ACTION"
+        const val GET_CURRENT_SONG_ACTION = "GET_CURRENT_SONG_ACTION"
 
         const val CHANNEL_ID = "PLAYER_CHANNEL_ID"
         const val CHANNEL_NAME = "Player Notification Channel"
@@ -434,6 +448,14 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         const val CANCEL_SERVICE_REQUEST_CODE = 4
         const val START_ACTIVITY_REQUEST_CODE = 5
         const val NOTIFICATION_ID = 1
+    }
+
+    override fun onMetadata(metadata: Metadata) {
+        currentSong = metadata.toString()
+
+        val event = SongTitleUpdateEvent()
+        event.value = currentSong
+        EventBus.getDefault().post(event)
     }
 
 
