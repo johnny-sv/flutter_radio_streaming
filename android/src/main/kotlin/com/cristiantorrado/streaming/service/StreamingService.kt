@@ -304,7 +304,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
     private fun notify(notification: Notification) {
         val notificationManager = NotificationManagerCompat.from(this)
-        notificationManager.notify(appName, NOTIFICATION_ID, notification)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     private fun actionHandler(intent: Intent?) {
@@ -477,7 +477,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         const val STOP_REQUEST_CODE = 3
         const val CANCEL_SERVICE_REQUEST_CODE = 4
         const val START_ACTIVITY_REQUEST_CODE = 5
-        const val NOTIFICATION_ID = 1
+        const val NOTIFICATION_ID = 1602246405
     }
 
 
