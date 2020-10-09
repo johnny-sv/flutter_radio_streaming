@@ -134,7 +134,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         this.isPlaying = isPlaying
         notification = buildNotification(
-            title, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+            currentSong, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )?.apply {
             notify(this)
         }
@@ -240,8 +240,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
                                   packageIntentName: String): Notification? {
 
         val notificationIntent = Intent(this, this::class.java)
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this,
-            0, notificationIntent, 0)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
         val playButtonNotificationText = if (playButtonText.isNotEmpty()) playButtonText else getString(R.string.play_button_title)
         val pauseButtonNotificationText = if (pauseButtonText.isNotEmpty()) pauseButtonText else getString(R.string.pause_button_title)
@@ -277,7 +276,6 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         }
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
@@ -290,7 +288,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
             .setSmallIcon(android.R.drawable.stat_sys_headset)
             .setContentIntent(tapAction)
             .addAction(R.drawable.ic_play_arrow_black_24dp, playButtonNotificationText, playAction)
-            .addAction(R.drawable.ic_pause_black_24dp, pauseButtonNotificationText, pauseAction)
+//            .addAction(R.drawable.ic_pause_black_24dp, pauseButtonNotificationText, pauseAction)
             .addAction(R.drawable.ic_stop_black_24dp, stopButtonNotificationText, stopAction)
         try {
             Color.parseColor(color).let {
