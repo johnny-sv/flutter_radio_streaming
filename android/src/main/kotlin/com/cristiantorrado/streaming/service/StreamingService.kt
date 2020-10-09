@@ -107,8 +107,8 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         }
 
         createNotificationChannel()
-        val notification =  buildNotification(title, description, playingText,
-            stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+        notification =  buildNotification(
+            title, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )
         startForeground(NOTIFICATION_ID, notification)
         actionHandler(intent)
@@ -133,8 +133,8 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         this.isPlaying = isPlaying
-        notification = buildNotification(title, description, playingText,
-            stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+        notification = buildNotification(
+            title, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )?.apply {
             notify(this)
         }
@@ -193,6 +193,12 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
             }
         }
         currentSong = song
+
+        notification = buildNotification(
+            currentSong, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
+        )?.apply {
+            notify(this)
+        }
 
         val event = SongTitleUpdateEvent()
         event.value = currentSong
