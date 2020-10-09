@@ -35,7 +35,6 @@ import org.greenrobot.eventbus.EventBus
 
 class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFocusChangeListener, MetadataOutput {
 
-    private var appName = ""
     private var isInitialized = false
     private var url = ""
     private var title = ""
@@ -84,7 +83,6 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
         requestAudioFocus()
         if (intent?.extras != null) {
-            intent.getStringExtra(APP_NAME_EXTRA)?.let { appName = it }
             intent.getStringExtra(URL_EXTRA)?.let { url = it }
             intent.getStringExtra(TITLE_EXTRA)?.let { title = it }
             intent.getStringExtra(DESCRIPTION_EXTRA)?.let { description = it }
@@ -298,7 +296,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
 
     private fun notify(notification: Notification) {
         val notificationManager = NotificationManagerCompat.from(this)
-        notificationManager.notify(appName, NOTIFICATION_ID, notification)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     private fun actionHandler(intent: Intent?) {
@@ -445,7 +443,6 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     }
 
     companion object {
-        const val APP_NAME_EXTRA = "APP_NAME_EXTRA"
         const val URL_EXTRA = "URL_EXTRA"
         const val COLOR_EXTRA = "COLOR_EXTRA"
         const val TITLE_EXTRA = "TITLE_EXTRA"

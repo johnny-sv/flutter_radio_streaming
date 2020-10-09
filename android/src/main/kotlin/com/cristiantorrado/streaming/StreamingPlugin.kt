@@ -21,7 +21,6 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
     private  var channel : MethodChannel? = null
 
     private var mFlutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
-    private var appName = ""
     private var url = ""
     private var title = ""
     private var description = ""
@@ -51,7 +50,6 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
         when (call.method) {
             CONFIG_METHOD -> {
                 try {
-                    appName = if (args[APP_NAME] != null) args[APP_NAME] as String else appName
                     url = if (args[URL_PARAM] != null) args[URL_PARAM] as String else url
                     title = if (args[TITLE_PARAM] != null) args[TITLE_PARAM] as String else title
                     description = if (args[DESCRIPTION_PARAM] != null) args[DESCRIPTION_PARAM] as String else description
@@ -73,7 +71,6 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
                     val startServiceIntent = Intent(context, StreamingService::class.java)
                     startServiceIntent.apply {
                         this.action = StreamingService.PLAY_ACTION
-                        this.putExtra(StreamingService.APP_NAME_EXTRA, appName)
                         this.putExtra(StreamingService.URL_EXTRA, url)
                         this.putExtra(StreamingService.TITLE_EXTRA, title)
                         this.putExtra(StreamingService.DESCRIPTION_EXTRA, description)
@@ -158,7 +155,6 @@ public class StreamingPlugin : FlutterPlugin, MethodCallHandler {
         const val RESULT_SUCCESS_MESSAGE = "Success"
         const val METHOD_CHANNEL = "streaming_channel"
 
-        const val APP_NAME = "app_name"
         const val URL_PARAM = "url"
         const val TITLE_PARAM = "notification_title"
         const val DESCRIPTION_PARAM = "notification_description"
