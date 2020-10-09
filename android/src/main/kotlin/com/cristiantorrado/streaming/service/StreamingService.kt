@@ -112,6 +112,7 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
         notification =  buildNotification(
             title, description, playingText, stoppedText, notificationColor, playText, stopText, pauseText, packageIntentName
         )
+        startForeground(NOTIFICATION_ID, notification)
         actionHandler(intent)
         return START_NOT_STICKY
     }
@@ -148,6 +149,11 @@ class StreamingService : Service(), Player.EventListener, AudioManager.OnAudioFo
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         status = getStatusFromPlaybackState(playWhenReady, playbackState)
         status?.let {
+            if (it == PlayerStatus.IDLE) {
+                this.notification?.let {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
+            }
             status = getStatusFromPlaybackState(playWhenReady, playbackState)
             when (status) {
                 PlayerStatus.LOADING -> EventBus.getDefault().post(LoadingEvent())
